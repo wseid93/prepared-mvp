@@ -762,7 +762,7 @@
     <div class="container">
         <div class="chat-container" id="chat-messages">
             <div class="message assistant">
-                Welcome! Please provide your phone number to get started (e.g., +14155552671).
+                Welcome! Please provide your phone number to get started (e.g., 14155552671).
             </div>
         </div>
     </div>
@@ -1050,24 +1050,41 @@
                 }
             ];
 
-            // Check if this is a phone number
-            if (message.includes("14155552671")) {
-                addMessage("Hi! Here are some recommended chefs based on your profile:", false);
-                showChefCards(mockChefs, []);
-                return;
-            }
-
-            // Check if this is a response to the meal plan question
-            const lastAssistantMessage = Array.from(document.querySelectorAll('.message.assistant')).pop();
-            if (lastAssistantMessage && lastAssistantMessage.textContent.includes('Would you like me to create a personalized meal plan')) {
-                if (message.toLowerCase() === 'yes') {
-                    handleMealPlanResponse('Chef Maria Rodriguez');
+            try {
+                // Check if this is a phone number
+                if (message === "14155552671") {
+                    addMessage("Hi! Here are some recommended chefs based on your profile:", false);
+                    
+                    // Create and append chef cards
+                    const container = createChefCards(mockChefs, []);
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message assistant';
+                    messageDiv.appendChild(container);
+                    chatMessages.appendChild(messageDiv);
+                    
+                    // Scroll to the new message
+                    window.scrollTo({
+                        top: document.body.scrollHeight,
+                        behavior: 'smooth'
+                    });
                     return;
                 }
-            }
 
-            // Default response
-            addMessage("Please enter the example phone number shown above to continue.", false);
+                // Check if this is a response to the meal plan question
+                const lastAssistantMessage = Array.from(document.querySelectorAll('.message.assistant')).pop();
+                if (lastAssistantMessage && lastAssistantMessage.textContent.includes('Would you like me to create a personalized meal plan')) {
+                    if (message.toLowerCase() === 'yes') {
+                        handleMealPlanResponse('Chef Maria Rodriguez');
+                        return;
+                    }
+                }
+
+                // Default response
+                addMessage("Please enter the example phone number shown above to continue.", false);
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage("Unable to process request. Please try again.", false);
+            }
         }
 
         function adjustTextareaHeight() {
