@@ -1022,6 +1022,41 @@
             messageInput.value = '';
             adjustTextareaHeight();
 
+            // Simplified phone number handling
+            const mockChefs = [
+                {
+                    name: "Chef Maria Rodriguez",
+                    rating: "4.9",
+                    bio: "Specializing in Mediterranean cuisine with a focus on clean eating and balanced macros. Expert in gluten-free cooking.",
+                    location: "San Francisco Bay Area",
+                    years_experience: 12,
+                    specialty: "Mediterranean"
+                },
+                {
+                    name: "Chef John Lee",
+                    rating: "4.8",
+                    bio: "Asian fusion specialist combining traditional techniques with modern nutrition science. Known for innovative protein-rich dishes.",
+                    location: "San Francisco Bay Area",
+                    years_experience: 8,
+                    specialty: "Asian Fusion"
+                },
+                {
+                    name: "Chef Sarah Williams",
+                    rating: "4.7",
+                    bio: "Farm-to-table expert focusing on seasonal ingredients and sustainable practices. Creates vibrant, nutrient-dense meals.",
+                    location: "San Francisco Bay Area",
+                    years_experience: 10,
+                    specialty: "Farm to Table"
+                }
+            ];
+
+            // Check if this is a phone number
+            if (message.includes("14155552671")) {
+                addMessage("Hi! Here are some recommended chefs based on your profile:", false);
+                showChefCards(mockChefs, []);
+                return;
+            }
+
             // Check if this is a response to the meal plan question
             const lastAssistantMessage = Array.from(document.querySelectorAll('.message.assistant')).pop();
             if (lastAssistantMessage && lastAssistantMessage.textContent.includes('Would you like me to create a personalized meal plan')) {
@@ -1031,54 +1066,8 @@
                 }
             }
 
-            // Handle phone number input
-            if (!currentPhoneNumber && message.match(/^\+1\d{10}$/)) {
-                currentPhoneNumber = message;
-                addMessage("Hi! Here are some recommended chefs based on your profile:", false);
-                
-                // Mock chef data
-                const mockChefs = [
-                    {
-                        name: "Chef Maria Rodriguez",
-                        rating: "4.9",
-                        bio: "Specializing in Mediterranean cuisine with a focus on clean eating and balanced macros. Expert in gluten-free cooking.",
-                        location: "San Francisco Bay Area",
-                        years_experience: 12,
-                        specialty: "Mediterranean"
-                    },
-                    {
-                        name: "Chef John Lee",
-                        rating: "4.8",
-                        bio: "Asian fusion specialist combining traditional techniques with modern nutrition science. Known for innovative protein-rich dishes.",
-                        location: "San Francisco Bay Area",
-                        years_experience: 8,
-                        specialty: "Asian Fusion"
-                    },
-                    {
-                        name: "Chef Sarah Williams",
-                        rating: "4.7",
-                        bio: "Farm-to-table expert focusing on seasonal ingredients and sustainable practices. Creates vibrant, nutrient-dense meals.",
-                        location: "San Francisco Bay Area",
-                        years_experience: 10,
-                        specialty: "Farm to Table"
-                    }
-                ];
-                
-                showChefCards(mockChefs, []);
-                return;
-            } else if (!currentPhoneNumber) {
-                addMessage("Please enter a valid US phone number in the format: +1XXXXXXXXXX", false);
-                return;
-            }
-
-            try {
-                // Handle other messages here
-                // For demo purposes, we'll just echo back a confirmation
-                addMessage("Message received! How can I help you today?", false);
-            } catch (error) {
-                console.error('Error:', error);
-                addMessage('Sorry, there was an error processing your request. Please try again.', false);
-            }
+            // Default response
+            addMessage("Please enter the example phone number shown above to continue.", false);
         }
 
         function adjustTextareaHeight() {
