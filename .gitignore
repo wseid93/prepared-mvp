@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+venv/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+*.pyc
+__pycache__/ 

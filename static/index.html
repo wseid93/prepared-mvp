@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prepared Meal Planning Chat</title>
+    <style>
+        :root {
+            --background-color: #FFFFFF;
+            --chat-background: #FFFFFF;
+            --text-color: #000000;
+            --input-background: #F4F4F5;
+            --border-color: #E5E5E5;
+            --accent-color: #19C37D;
+            --suggestion-background: #F4F4F5;
+            --suggestion-text: #6B6B6B;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            background-color: var(--background-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+        }
+
+        .menu-button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-color);
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        .header .header-title::before {
+            content: "";
+            width: 24px;
+            height: 24px;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="black"/><text x="50" y="70" font-family="serif" font-size="60" fill="white" text-anchor="middle">P</text></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .new-chat-button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            margin: 60px auto 180px;
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            padding: 10px 20px;
+            line-height: 1.5;
+            max-width: 85%;
+            margin: 5px 0;
+        }
+
+        .message.user {
+            color: var(--text-color);
+            background-color: #F4F4F5;
+            margin-left: auto;
+            margin-right: 0;
+            border-radius: 20px;
+        }
+
+        .message.assistant {
+            color: var(--text-color);
+            background: none;
+            margin-right: auto;
+            margin-left: 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 20px;
+        }
+
+        .message.assistant::before {
+            content: "";
+            width: 30px;
+            height: 30px;
+            flex-shrink: 0;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="black"/><text x="50" y="70" font-family="serif" font-size="60" fill="white" text-anchor="middle">P</text></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+            margin-top: 4px;
+        }
+
+        .message.assistant.card-container::before {
+            content: "";
+            display: block;
+        }
+
+        .input-container {
+            z-index: 1003;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--background-color);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 20px 30px;
+        }
+
+        .suggestions {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            padding: 0 20px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+
+        .suggestions::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+
+        .suggestion-button {
+            background-color: var(--suggestion-background);
+            border: none;
+            border-radius: 20px;
+            padding: 12px 20px;
+            white-space: nowrap;
+            font-size: 0.9em;
+            color: var(--suggestion-text);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-width: 180px;
+            max-width: 200px;
+            flex: 1;
+        }
+
+        .suggestion-button .title {
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .suggestion-button .subtitle {
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+
+        .input-box {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            background-color: var(--input-background);
+            border-radius: 20px;
+            padding: 8px 45px 8px 15px;
+            margin: 0 10px;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            border: none;
+            background: none;
+            font-size: 16px;
+            resize: none;
+            padding: 0;
+            max-height: 120px;
+            color: var(--text-color);
+        }
+
+        #message-input:focus {
+            outline: none;
+        }
+
+        .input-buttons {
+            display: flex;
+            gap: 15px;
+            position: absolute;
+            right: 15px;
+            bottom: 10px;
+        }
+
+        .input-button {
+            background: none;
+            border: none;
+            padding: 0;
+            color: #6B6B6B;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .input-button.plus {
+            font-size: 24px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+        }
+
+        /* Card Stack Styles */
+        .card-stack-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+            padding-bottom: 60px;
+        }
+
+        .card-stack {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+            min-height: 300px; /* Ensure consistent height for container */
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: absolute; /* All cards are absolutely positioned */
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%; /* Ensure all cards have same width */
+            box-sizing: border-box;
+            transform-origin: center;
+            transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, height 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+            cursor: pointer;
+            backface-visibility: hidden;
+        }
+
+        .card.active {
+            position: relative; /* Active card sets the height */
+            z-index: 3;
+            transform: translateX(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .card.next {
+            z-index: 2;
+            transform: translateX(20px) scale(0.98);
+            opacity: 0.8;
+        }
+
+        .card.prev {
+            z-index: 2;
+            transform: translateX(-20px) scale(0.98);
+            opacity: 0.8;
+        }
+
+        .card-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 999;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .card-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Dim other UI elements when card is expanded */
+        .card.expanded ~ .suggestions,
+        .card.expanded ~ .input-box,
+        .card.expanded ~ .chat-container .message:not(:last-child) {
+            opacity: 0.1;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Keep the expanded card bright */
+        .card.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90vw;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 800px;
+            z-index: 1000;
+            opacity: 1;
+            overflow-y: auto;
+            cursor: default;
+            transition: all 0.3s ease;
+            background: white;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Ensure navigation stays visible */
+        .card.expanded ~ .card-navigation {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1002;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* Keep back button visible */
+        .back-button.visible {
+            display: flex;
+            z-index: 1001;
+            opacity: 1;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .card.expanded .menu-section {
+            display: block;
+            opacity: 1;
+            margin-top: 30px;
+        }
+
+        .menu-section {
+            display: none;
+            margin-top: 30px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .menu-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .menu-section-title {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .select-menu-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #000;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: auto;
+            z-index: 2;
+        }
+
+        .select-menu-button:hover {
+            background: #333;
+            transform: scale(1.02);
+        }
+
+        .menu-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+            position: relative;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .menu-item-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+
+        .menu-item-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .menu-item-macros {
+            color: #666;
+            font-size: 0.9em;
+            font-family: inherit;
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .macro-item {
+            display: inline-flex;
+            align-items: center;
+            background: #F4F4F5;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .photo-counter {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 24px;
+        }
+
+        .chef-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chef-rating {
+            font-size: 1.2em;
+        }
+
+        .chef-bio {
+            color: #666;
+            margin: 16px 0;
+            line-height: 1.5;
+            font-size: 1.1em;
+        }
+
+        .chef-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .chef-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        /* Navigation Buttons */
+        .card-navigation {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            z-index: 1002;
+            pointer-events: none;
+            width: auto;
+            padding: 0;
+        }
+
+        .nav-button {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            pointer-events: auto;
+        }
+
+        .nav-button:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        .nav-button:not(:disabled):hover {
+            transform: scale(1.05);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Expanded card navigation */
+        .card.expanded ~ .card-navigation {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1002;
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        /* Update the expanded card navigation styles */
+        .card.expanded ~ .card-navigation .nav-button {
+            background: rgba(0, 0, 0, 0.8);
+            width: 44px;
+            height: 44px;
+            font-size: 20px;
+        }
+
+        .chef-profile-match {
+            background: #F0FDF4;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #BBF7D0;
+        }
+
+        .profile-match-title {
+            color: #166534;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .profile-match-detail {
+            color: #166534;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card.expanded.slide-left-exit {
+            transform: translate(-100%, -50%);
+            opacity: 0;
+        }
+
+        .card.expanded.slide-right-exit {
+            transform: translate(100%, -50%);
+            opacity: 0;
+        }
+
+        .card.expanded.slide-left-enter {
+            transform: translate(100%, -50%);
+            opacity: 0;
+        }
+
+        .card.expanded.slide-right-enter {
+            transform: translate(-100%, -50%);
+            opacity: 0;
+        }
+
+        .chef-info {
+            position: relative;
+            padding-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="menu-button">☰</button>
+        <div class="header-title">
+            Prepared
+            <span style="opacity: 0.6">1.0</span>
+        </div>
+        <button class="new-chat-button">✎</button>
+    </div>
+    <div class="container">
+        <div class="chat-container" id="chat-messages">
+            <div class="message assistant">
+                Welcome! Please provide your phone number to get started (e.g., +14155552671).
+            </div>
+        </div>
+    </div>
+    <div class="input-container">
+        <div class="suggestions">
+            <button class="suggestion-button">
+                <span class="title">Create a meal plan</span>
+                <span class="subtitle">for your nutrition goals</span>
+            </button>
+            <button class="suggestion-button">
+                <span class="title">Find a chef</span>
+                <span class="subtitle">matching your preferences</span>
+            </button>
+            <button class="suggestion-button">
+                <span class="title">View menu options</span>
+                <span class="subtitle">tailored to your diet</span>
+            </button>
+        </div>
+        <div class="input-box">
+            <textarea 
+                id="message-input" 
+                placeholder="Message" 
+                rows="1"
+                autocomplete="off"
+            ></textarea>
+            <div class="input-buttons">
+                <button class="input-button plus">+</button>
+                <button class="input-button">🌐</button>
+                <button class="input-button" onclick="sendMessage()">↑</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPhoneNumber = null;
+        const messageInput = document.getElementById('message-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        // Add click handlers for suggestion buttons
+        document.querySelectorAll('.suggestion-button').forEach(button => {
+            button.addEventListener('click', function() {
+                messageInput.value = this.querySelector('.title').textContent;
+                sendMessage();
+            });
+        });
+
+        function addMessage(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            // Handle error messages with special styling
+            if (message === 'Sorry, there was an error processing your request.') {
+                messageDiv.style.color = '#DC2626';
+                messageDiv.style.backgroundColor = '#FEE2E2';
+            }
+            
+            // If the message is an object or complex content, handle it appropriately
+            if (typeof message === 'object' && message !== null) {
+                messageDiv.appendChild(message);
+            } else {
+                messageDiv.textContent = message;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to the new message
+            messageDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Hide suggestions after first message
+            const suggestions = document.querySelector('.suggestions');
+            if (suggestions) {
+                suggestions.style.display = 'none';
+            }
+            
+            addMessage(message, true);
+            messageInput.value = '';
+            adjustTextareaHeight();
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        phone_number: currentPhoneNumber
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data.phone_number) {
+                    currentPhoneNumber = data.phone_number;
+                    addMessage("Hi! Here are some recommended chefs based on your profile:", false);
+                    try {
+                        const chefsResponse = await fetch('/api/chefs');
+                        if (!chefsResponse.ok) {
+                            throw new Error('Failed to fetch chef data');
+                        }
+                        const chefData = await chefsResponse.json();
+                        showChefCards(chefData.chefs, chefData.menus);
+                    } catch (chefError) {
+                        console.error('Error fetching chef data:', chefError);
+                        addMessage('Unable to load chef recommendations at this time. Please try again.', false);
+                    }
+                } else if (data.response) {
+                    addMessage(data.response, false);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('Sorry, there was an error processing your request. Please try again.', false);
+            }
+        }
+
+        function adjustTextareaHeight() {
+            messageInput.style.height = 'auto';
+            const newHeight = Math.min(messageInput.scrollHeight, 120);
+            messageInput.style.height = newHeight + 'px';
+        }
+
+        messageInput.addEventListener('input', adjustTextareaHeight);
+
+        // Add the meal plan response function
+        function getMealPlanResponse() {
+            return `Perfect! Here's a suggested meal plan using Chef Maria's Mediterranean menu:
+
+Monday:
+• Mediterranean Grilled Chicken Bowl
+  - Lunch portion: Balanced protein and complex carbs for midday energy
+  - Macros: 520 Cal, 42g Protein, 18g Fat, 45g Carbs
+
+Tuesday:
+• Herb-Crusted Salmon
+  - Dinner portion: Rich in omega-3s and lean protein
+  - Macros: 480 Cal, 38g Protein, 22g Fat, 35g Carbs
+
+Wednesday:
+• Greek Power Bowl
+  - Lunch portion: High protein with healthy fats from olives and feta
+  - Macros: 450 Cal, 35g Protein, 20g Fat, 38g Carbs
+
+Thursday:
+• Turkey Kofta Plate
+  - Dinner portion: Lean protein with Mediterranean spices
+  - Macros: 490 Cal, 45g Protein, 15g Fat, 42g Carbs
+
+Friday:
+• Mediterranean Steak
+  - Dinner portion: Premium protein with herb chimichurri
+  - Macros: 580 Cal, 48g Protein, 25g Fat, 40g Carbs
+
+Each meal is portioned to meet your 2000 cal/day goal and 130g protein target. Would you like to proceed with this plan?`;
+        }
+
+        // Update the message handling to include meal plan response
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const message = messageInput.value.trim().toLowerCase();
+                
+                if (message === 'yes' && chatMessages.lastElementChild.textContent.includes('create a personalized meal plan')) {
+                    addMessage(message, true);
+                    addMessage(getMealPlanResponse(), false);
+                    messageInput.value = '';
+                } else {
+                    sendMessage();
+                }
+            }
+        });
+
+        adjustTextareaHeight();
+
+        function createChefCards(chefs, menus) {
+            // Validate input data
+            if (!Array.isArray(chefs) || !Array.isArray(menus) || chefs.length === 0 || menus.length === 0) {
+                throw new Error('Invalid chef or menu data');
+            }
+
+            const container = document.createElement('div');
+            container.className = 'card-stack-container';
+            
+            const cardStack = document.createElement('div');
+            cardStack.className = 'card-stack';
+            
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'card-overlay';
+            document.body.appendChild(overlay);
+
+            // Create back button
+            const backButton = document.createElement('button');
+            backButton.className = 'back-button';
+            backButton.innerHTML = '×';
+            document.body.appendChild(backButton);
+            
+            // Create default chef data if missing properties
+            const defaultChef = {
+                name: 'Chef',
+                rating: '4.5',
+                bio: 'Experienced chef specializing in healthy, delicious meals.',
+                location: 'San Francisco Bay Area',
+                years_experience: 5
+            };
+
+            // Create default menu items if none provided
+            const defaultMenus = {
+                mediterranean: [
+                    {
+                        name: "Mediterranean Grilled Chicken Bowl",
+                        description: "Herb-marinated chicken breast, quinoa, roasted vegetables, hummus",
+                        macros: "520kCal • 42P • 18F • 45C"
+                    },
+                    {
+                        name: "Herb-Crusted Salmon",
+                        description: "Wild-caught salmon, Mediterranean herbs, roasted asparagus, lemon-garlic sauce",
+                        macros: "480kCal • 38P • 22F • 35C"
+                    },
+                    {
+                        name: "Greek Power Bowl",
+                        description: "Grilled shrimp, feta, kalamata olives, cucumber, cherry tomatoes, quinoa",
+                        macros: "450kCal • 35P • 20F • 38C"
+                    },
+                    {
+                        name: "Turkey Kofta Plate",
+                        description: "Seasoned turkey meatballs, tzatziki, mixed greens, brown rice",
+                        macros: "490kCal • 45P • 15F • 42C"
+                    },
+                    {
+                        name: "Mediterranean Steak",
+                        description: "Grass-fed beef, herb chimichurri, roasted vegetables, sweet potato",
+                        macros: "580kCal • 48P • 25F • 40C"
+                    },
+                    {
+                        name: "Chickpea Falafel Bowl",
+                        description: "Baked falafel, tahini sauce, Mediterranean slaw, brown rice",
+                        macros: "460kCal • 32P • 16F • 48C"
+                    },
+                    {
+                        name: "Grilled Fish Tacos",
+                        description: "White fish, corn tortillas, Greek slaw, avocado-tzatziki",
+                        macros: "440kCal • 36P • 18F • 38C"
+                    },
+                    {
+                        name: "Mediterranean Breakfast Bowl",
+                        description: "Eggs, spinach, feta, roasted tomatoes, gluten-free pita",
+                        macros: "420kCal • 32P • 20F • 32C"
+                    }
+                ],
+                asian: [
+                    {
+                        name: "Teriyaki Chicken Bowl",
+                        description: "Grilled chicken, house teriyaki, broccoli, brown rice",
+                        macros: "510kCal • 45P • 12F • 48C"
+                    },
+                    {
+                        name: "Sesame Seared Tuna",
+                        description: "Sushi-grade tuna, sesame crust, Asian slaw, cauliflower rice",
+                        macros: "440kCal • 46P • 18F • 25C"
+                    },
+                    {
+                        name: "Korean BBQ Bowl",
+                        description: "Marinated beef, kimchi, vegetables, brown rice",
+                        macros: "530kCal • 42P • 22F • 42C"
+                    },
+                    {
+                        name: "Miso Glazed Salmon",
+                        description: "Wild salmon, miso glaze, bok choy, brown rice",
+                        macros: "490kCal • 38P • 24F • 35C"
+                    },
+                    {
+                        name: "Thai Basil Chicken",
+                        description: "Ground chicken, Thai basil, bell peppers, jasmine rice",
+                        macros: "480kCal • 44P • 15F • 40C"
+                    },
+                    {
+                        name: "Tofu Stir-Fry",
+                        description: "Crispy tofu, mixed vegetables, ginger-garlic sauce, quinoa",
+                        macros: "420kCal • 32P • 16F • 45C"
+                    },
+                    {
+                        name: "Asian Shrimp Bowl",
+                        description: "Garlic shrimp, edamame, carrots, brown rice",
+                        macros: "450kCal • 40P • 14F • 38C"
+                    },
+                    {
+                        name: "Breakfast Rice Bowl",
+                        description: "Eggs, spinach, mushrooms, brown rice, sesame sauce",
+                        description: "430kCal • 35P • 18F • 35C"
+                    }
+                ],
+                mexican: [
+                    {
+                        name: "Carne Asada Bowl",
+                        description: "Grilled steak, black beans, roasted peppers, cilantro-lime rice",
+                        macros: "540kCal • 45P • 20F • 45C"
+                    },
+                    {
+                        name: "Chipotle Chicken",
+                        description: "Grilled chicken breast, chipotle sauce, corn salsa, quinoa",
+                        macros: "490kCal • 42P • 15F • 42C"
+                    },
+                    {
+                        name: "Fish Taco Bowl",
+                        description: "Grilled white fish, pico de gallo, cabbage slaw, brown rice",
+                        macros: "460kCal • 38P • 16F • 40C"
+                    },
+                    {
+                        name: "Turkey Taco Bowl",
+                        description: "Seasoned ground turkey, black beans, vegetables, cauliflower rice",
+                        macros: "480kCal • 44P • 18F • 35C"
+                    },
+                    {
+                        name: "Shrimp Fajita Bowl",
+                        description: "Grilled shrimp, bell peppers, onions, brown rice",
+                        macros: "450kCal • 40P • 14F • 38C"
+                    },
+                    {
+                        name: "Mexican Breakfast Bowl",
+                        description: "Eggs, black beans, sweet potato, salsa verde",
+                        macros: "420kCal • 32P • 20F • 32C"
+                    },
+                    {
+                        name: "Chicken Verde Bowl",
+                        description: "Shredded chicken, tomatillo sauce, roasted vegetables, quinoa",
+                        macros: "470kCal • 43P • 16F • 38C"
+                    },
+                    {
+                        name: "Steak Fajita Bowl",
+                        description: "Grilled steak, peppers, onions, cilantro-lime cauliflower rice",
+                        macros: "510kCal • 45P • 22F • 35C"
+                    }
+                ]
+            };
+
+            chefs.forEach((chef, index) => {
+                // Merge with default data to handle missing properties
+                const chefData = { ...defaultChef, ...chef };
+                let menuItems;
+                
+                // Select appropriate menu based on chef's specialty
+                if (chefData.name.includes('Maria')) {
+                    menuItems = defaultMenus.mediterranean;
+                } else if (chefData.name.includes('John')) {
+                    menuItems = defaultMenus.asian;
+                } else if (chefData.name.includes('Michael')) {
+                    menuItems = defaultMenus.mexican;
+                } else {
+                    menuItems = defaultMenus.mediterranean; // Default fallback
+                }
+                
+                const card = document.createElement('div');
+                card.className = `card ${index === 0 ? 'active' : index === 1 ? 'next' : ''}`;
+                
+                const formatMacros = (macroString) => {
+                    // Parse the macro string and remove the extra letters
+                    const [cals, protein, fat, carbs] = macroString.split('•').map(s => s.trim());
+                    return `
+                        <div class="macro-item">${cals.replace('kCal', ' Calories')}</div>
+                        <div class="macro-item">${protein.replace('P', '')}g Protein</div>
+                        <div class="macro-item">${fat.replace('F', '')}g Fat</div>
+                        <div class="macro-item">${carbs.replace('C', '')}g Carbs</div>
+                    `;
+                };
+
+                const content = `
+                    <div class="photo-counter">
+                        ${index + 1} of ${chefs.length}
+                    </div>
+                    <button class="select-menu-button" onclick="event.stopPropagation(); selectEntireMenu('${chefData.name}')">Select Chef</button>
+                    <div class="chef-info">
+                        <div class="chef-name">
+                            ${chefData.name} <span class="chef-rating">★ ${chefData.rating}</span>
+                        </div>
+                        <div class="chef-bio">
+                            ${chefData.bio}
+                        </div>
+                        <div class="chef-profile-match">
+                            <div class="profile-match-title">How this menu matches your profile:</div>
+                            <div class="profile-match-detail">✓ Gluten-free options available</div>
+                            <div class="profile-match-detail">✓ Meets daily protein target (130g)</div>
+                            <div class="profile-match-detail">✓ Portions aligned with 2000 cal goal</div>
+                        </div>
+                        <div class="chef-details">
+                            <div class="chef-detail">
+                                📍 ${chefData.location}
+                            </div>
+                            <div class="chef-detail">
+                                👨‍🍳 ${chefData.years_experience}y exp
+                            </div>
+                        </div>
+                    </div>
+                    <div class="menu-section" style="display: none;">
+                        <div class="menu-section-header">
+                            <div class="menu-section-title">Menu Options</div>
+                        </div>
+                        ${menuItems.map(item => `
+                            <div class="menu-item">
+                                <div class="menu-item-title">
+                                    ${item.name}
+                                </div>
+                                <div class="menu-item-details">${item.description}</div>
+                                <div class="menu-item-macros">${formatMacros(item.macros)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                
+                card.innerHTML = content;
+                cardStack.appendChild(card);
+
+                // Add click handler for expansion
+                card.addEventListener('click', (e) => {
+                    if (!card.classList.contains('active') || 
+                        e.target.closest('.nav-button')) {
+                        return;
+                    }
+                    
+                    const menuSection = card.querySelector('.menu-section');
+                    
+                    if (!card.classList.contains('expanded')) {
+                        card.classList.add('expanded');
+                        overlay.classList.add('active');
+                        backButton.classList.add('visible');
+                        menuSection.style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+            });
+
+            // Back button click handler
+            backButton.addEventListener('click', () => {
+                const expandedCard = document.querySelector('.card.expanded');
+                if (expandedCard) {
+                    const menuSection = expandedCard.querySelector('.menu-section');
+                    expandedCard.classList.remove('expanded');
+                    overlay.classList.remove('active');
+                    backButton.classList.remove('visible');
+                    menuSection.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Close on overlay click
+            overlay.addEventListener('click', () => {
+                backButton.click();
+            });
+
+            // Prevent clicks inside the expanded card from closing it
+            cardStack.addEventListener('click', (e) => {
+                if (e.target.closest('.card.expanded')) {
+                    e.stopPropagation();
+                }
+            });
+
+            function showCard(direction) {
+                const cards = cardStack.querySelectorAll('.card');
+                const activeCard = cardStack.querySelector('.card.active');
+                const currentIndex = Array.from(cards).indexOf(activeCard);
+                const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+                const wasExpanded = activeCard.classList.contains('expanded');
+                
+                if (newIndex >= 0 && newIndex < cards.length) {
+                    if (wasExpanded) {
+                        // Add exit animation class
+                        activeCard.classList.add(direction === 'next' ? 'slide-left-exit' : 'slide-right-exit');
+                        const activeMenuSection = activeCard.querySelector('.menu-section');
+                        activeMenuSection.style.display = 'none';
+                        
+                        // Wait for exit animation
+                        setTimeout(() => {
+                            // Reset all cards
+                            cards.forEach(card => {
+                                card.className = 'card';
+                                const menuSection = card.querySelector('.menu-section');
+                                menuSection.style.display = 'none';
+                            });
+                            
+                            // Set new active card
+                            const newCard = cards[newIndex];
+                            newCard.className = 'card active expanded';
+                            
+                            // Add enter animation class
+                            newCard.classList.add(direction === 'next' ? 'slide-right-enter' : 'slide-left-enter');
+                            
+                            // Show menu section
+                            const menuSection = newCard.querySelector('.menu-section');
+                            menuSection.style.display = 'block';
+                            
+                            // Start enter animation
+                            requestAnimationFrame(() => {
+                                newCard.style.transform = 'translate(-50%, -50%)';
+                                newCard.style.opacity = '1';
+                                
+                                // Remove animation classes after animation completes
+                                setTimeout(() => {
+                                    newCard.classList.remove('slide-right-enter', 'slide-left-enter');
+                                    newCard.style.transform = '';
+                                }, 300);
+                            });
+                            
+                            updateButtons(newIndex);
+                        }, 300);
+                    } else {
+                        // Regular card transition for non-expanded state
+                        cards.forEach(card => {
+                            card.className = 'card';
+                            const menuSection = card.querySelector('.menu-section');
+                            menuSection.style.display = 'none';
+                        });
+                        
+                        cards[newIndex].className = 'card active';
+                        
+                        if (newIndex > 0) {
+                            cards[newIndex - 1].className = 'card prev';
+                        }
+                        
+                        if (newIndex < cards.length - 1) {
+                            cards[newIndex + 1].className = 'card next';
+                        }
+                        
+                        updateButtons(newIndex);
+                    }
+                }
+            }
+            
+            // Add navigation buttons
+            const navigation = document.createElement('div');
+            navigation.className = 'card-navigation';
+            
+            const prevButton = document.createElement('button');
+            prevButton.className = 'nav-button';
+            prevButton.innerHTML = '←';
+            prevButton.disabled = true; // Initially disabled
+            
+            const nextButton = document.createElement('button');
+            nextButton.className = 'nav-button';
+            nextButton.innerHTML = '→';
+            nextButton.disabled = chefs.length <= 1;
+            
+            navigation.appendChild(prevButton);
+            navigation.appendChild(nextButton);
+            
+            // Navigation button click handlers
+            function updateButtons(currentIndex) {
+                prevButton.disabled = currentIndex === 0;
+                nextButton.disabled = currentIndex === chefs.length - 1;
+            }
+            
+            prevButton.addEventListener('click', () => showCard('prev'));
+            nextButton.addEventListener('click', () => showCard('next'));
+
+            // Add swipe handling
+            let startX = 0;
+            let currentX = 0;
+            
+            function handleTouchStart(e) {
+                startX = e.touches[0].clientX;
+            }
+            
+            function handleTouchMove(e) {
+                e.preventDefault();
+                currentX = e.touches[0].clientX;
+            }
+            
+            function handleTouchEnd() {
+                const diff = startX - currentX;
+                if (Math.abs(diff) > 50) { // Minimum swipe distance
+                    if (diff > 0) {
+                        nextButton.click();
+                    } else {
+                        prevButton.click();
+                    }
+                }
+            }
+            
+            cardStack.addEventListener('touchstart', handleTouchStart);
+            cardStack.addEventListener('touchmove', handleTouchMove);
+            cardStack.addEventListener('touchend', handleTouchEnd);
+            
+            container.appendChild(cardStack);
+            container.appendChild(navigation);
+
+            // Update navigation styles for expanded view
+            const navStyles = document.createElement('style');
+            navStyles.textContent = `
+                .card.expanded + .card-navigation {
+                    position: fixed;
+                    bottom: 40px;
+                    left: 0;
+                    right: 0;
+                    z-index: 1001;
+                }
+                
+                .card.expanded ~ .card-navigation .nav-button {
+                    background: rgba(0, 0, 0, 0.8);
+                    width: 50px;
+                    height: 50px;
+                    font-size: 24px;
+                }
+            `;
+            document.head.appendChild(navStyles);
+
+            return container;
+        }
+
+        function showChefCards(chefs, menus) {
+            try {
+                // Validate and sanitize input data
+                const validChefs = Array.isArray(chefs) ? chefs : [];
+                const validMenus = Array.isArray(menus) ? menus : [];
+                
+                if (validChefs.length === 0) {
+                    throw new Error('No chef data available');
+                }
+
+                const container = createChefCards(validChefs, validMenus);
+                const message = document.createElement('div');
+                message.className = 'message assistant';
+                message.appendChild(container);
+                chatMessages.appendChild(message);
+                
+                window.scrollTo({
+                    top: document.body.scrollHeight,
+                    behavior: 'smooth'
+                });
+            } catch (error) {
+                console.error('Error showing chef cards:', error);
+                addMessage('Unable to display chef recommendations. Please try again.', false);
+            }
+        }
+
+        // Update the selectEntireMenu function
+        function selectEntireMenu(chefName) {
+            const expandedCard = document.querySelector('.card.expanded');
+            if (expandedCard) {
+                // Close expanded card
+                const menuSection = expandedCard.querySelector('.menu-section');
+                expandedCard.classList.remove('expanded');
+                menuSection.style.display = 'none';
+                
+                // Hide overlay and back button
+                const overlay = document.querySelector('.card-overlay');
+                const backButton = document.querySelector('.back-button');
+                if (overlay) overlay.classList.remove('active');
+                if (backButton) backButton.classList.remove('visible');
+                
+                document.body.style.overflow = '';
+            }
+            
+            // Add the user's selection message
+            const userMessage = `I'd like to select ${chefName}.`;
+            addMessage(userMessage, true);
+            
+            // Add the assistant's response
+            const assistantResponse = `${chefName} is a great choice! Would you like me to create a personalized meal plan for the week using their menu?`;
+            addMessage(assistantResponse, false);
+            
+            // Clear any existing input
+            messageInput.value = '';
+            
+            // Scroll to the new messages
+            window.scrollTo({
+                top: document.body.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    </script>
+</body>
+</html> 
