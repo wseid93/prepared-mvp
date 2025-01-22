@@ -1031,45 +1031,50 @@
                 }
             }
 
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        phone_number: currentPhoneNumber
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
+            // Handle phone number input
+            if (!currentPhoneNumber && message.match(/^\+1\d{10}$/)) {
+                currentPhoneNumber = message;
+                addMessage("Hi! Here are some recommended chefs based on your profile:", false);
                 
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                if (data.phone_number) {
-                    currentPhoneNumber = data.phone_number;
-                    addMessage("Hi! Here are some recommended chefs based on your profile:", false);
-                    try {
-                        const chefsResponse = await fetch('/api/chefs');
-                        if (!chefsResponse.ok) {
-                            throw new Error('Failed to fetch chef data');
-                        }
-                        const chefData = await chefsResponse.json();
-                        showChefCards(chefData.chefs, chefData.menus);
-                    } catch (chefError) {
-                        console.error('Error fetching chef data:', chefError);
-                        addMessage('Unable to load chef recommendations at this time. Please try again.', false);
+                // Mock chef data
+                const mockChefs = [
+                    {
+                        name: "Chef Maria Rodriguez",
+                        rating: "4.9",
+                        bio: "Specializing in Mediterranean cuisine with a focus on clean eating and balanced macros. Expert in gluten-free cooking.",
+                        location: "San Francisco Bay Area",
+                        years_experience: 12,
+                        specialty: "Mediterranean"
+                    },
+                    {
+                        name: "Chef John Lee",
+                        rating: "4.8",
+                        bio: "Asian fusion specialist combining traditional techniques with modern nutrition science. Known for innovative protein-rich dishes.",
+                        location: "San Francisco Bay Area",
+                        years_experience: 8,
+                        specialty: "Asian Fusion"
+                    },
+                    {
+                        name: "Chef Sarah Williams",
+                        rating: "4.7",
+                        bio: "Farm-to-table expert focusing on seasonal ingredients and sustainable practices. Creates vibrant, nutrient-dense meals.",
+                        location: "San Francisco Bay Area",
+                        years_experience: 10,
+                        specialty: "Farm to Table"
                     }
-                } else if (data.response) {
-                    addMessage(data.response, false);
-                }
+                ];
+                
+                showChefCards(mockChefs, []);
+                return;
+            } else if (!currentPhoneNumber) {
+                addMessage("Please enter a valid US phone number in the format: +1XXXXXXXXXX", false);
+                return;
+            }
+
+            try {
+                // Handle other messages here
+                // For demo purposes, we'll just echo back a confirmation
+                addMessage("Message received! How can I help you today?", false);
             } catch (error) {
                 console.error('Error:', error);
                 addMessage('Sorry, there was an error processing your request. Please try again.', false);
