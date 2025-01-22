@@ -1105,9 +1105,9 @@
         adjustTextareaHeight();
 
         function createChefCards(chefs, menus) {
-            // Validate input data
-            if (!Array.isArray(chefs) || !Array.isArray(menus) || chefs.length === 0 || menus.length === 0) {
-                throw new Error('Invalid chef or menu data');
+            // Validate input data - only check for chefs array
+            if (!Array.isArray(chefs) || chefs.length === 0) {
+                throw new Error('Invalid chef data');
             }
 
             const container = document.createElement('div');
