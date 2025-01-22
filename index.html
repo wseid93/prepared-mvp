@@ -79,7 +79,7 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            margin: 60px auto 180px;
+            margin: 60px auto 140px;
             padding: 20px;
             max-width: 800px;
             width: 100%;
@@ -91,6 +91,7 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            width: 100%;
         }
 
         .message {
@@ -99,6 +100,7 @@
             max-width: 85%;
             margin: 5px 0;
             font-size: 16px;
+            word-wrap: break-word;
         }
 
         .message.user {
@@ -248,7 +250,7 @@
 
         @media (max-width: 600px) {
             .container {
-                margin: 60px auto 140px;
+                margin: 60px auto 120px;
                 padding: 10px;
             }
 
@@ -258,14 +260,17 @@
                 font-size: 15px;
             }
 
-            .suggestion-button {
-                min-width: 140px;
-                max-width: 160px;
-                padding: 10px 14px;
+            .message.assistant {
+                padding-left: 0;
+                margin-right: 10px;
             }
 
-            .input-box {
-                margin: 0 5px;
+            .message.user {
+                margin-left: 10px;
+            }
+
+            .header {
+                padding: 12px;
             }
 
             .header-title {
@@ -274,6 +279,31 @@
 
             .menu-button, .new-chat-button {
                 padding: 3px;
+            }
+
+            .input-container {
+                padding: 10px 10px calc(env(safe-area-inset-bottom) + 10px);
+            }
+
+            .input-box {
+                margin: 0 5px;
+                padding: 6px 12px;
+            }
+
+            #message-input {
+                font-size: 15px;
+                padding: 4px 0;
+            }
+        }
+
+        /* Add iOS-specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            .container {
+                margin-bottom: 140px;
+            }
+
+            .input-container {
+                padding-bottom: calc(env(safe-area-inset-bottom) + 15px);
             }
         }
 
