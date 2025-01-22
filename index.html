@@ -121,6 +121,8 @@
             display: flex;
             align-items: flex-start;
             gap: 12px;
+            white-space: pre-wrap;
+            line-height: 1.6;
         }
 
         .message.assistant::before {
@@ -793,7 +795,8 @@
     <div class="container">
         <div class="chat-container" id="chat-messages">
             <div class="message assistant">
-                Welcome! Please provide your phone number to get started<br>Example: 14155552671
+                Welcome! Please provide your phone number to get started.<br><br>
+                Example number: 14155552671
             </div>
         </div>
     </div>
